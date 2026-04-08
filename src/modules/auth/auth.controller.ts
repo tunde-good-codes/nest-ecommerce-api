@@ -6,6 +6,7 @@ import { ApiBearerAuth, ApiOperation, ApiResponse } from "@nestjs/swagger";
 import { RefreshTokenGuard } from "./guards/refresh-token.guards";
 import { GetUser } from "src/common/decorators/get-user";
 import { JwtAuthGuard } from "./guards/jwt-auth-guard";
+import { LoginDto } from "./dtos/login.dto";
 
 @Controller("auth")
 export class AuthController {
@@ -88,5 +89,29 @@ export class AuthController {
   async logout(@GetUser("id") userId: string): Promise<{ message: string }> {
     await this.authService.logout(userId);
     return { message: "Successfully logged out" };
+  }
+
+  // Login
+  @Post("login")
+  @ApiOperation({
+    summary: "User login",
+    description: "Authenticates a user and returns access and refresh tokens"
+  })
+  @ApiResponse({
+    status: 200,
+    description: "User successfully logged in",
+    type: AuthResponseDto
+  })
+  @ApiResponse({
+    status: 401,
+    description: "Unauthorized. Invalid credentials"
+  })
+  @ApiResponse({
+    status: 429,
+    description: "Too Many Requests. Rate limit exceeded"
+  })
+  @HttpCode(HttpStatus.OK)
+  async login(@Body() loginDto: LoginDto): Promise<AuthResponseDto> {
+    return await this.authService.login(loginDto);
   }
 }
