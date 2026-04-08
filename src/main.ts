@@ -2,7 +2,7 @@ import { NestFactory } from "@nestjs/core";
 import * as dotenv from "dotenv";
 import { AppModule } from "./app.module";
 import { Logger, ValidationPipe } from "@nestjs/common";
-import { SwaggerModule } from "@nestjs/swagger";
+import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
 
 dotenv.config();
 
@@ -57,7 +57,7 @@ async function bootstrap() {
       },
       "JWT-refresh"
     )
-    .addServer("http://localhost:3001", "Development server")
+    .addServer("http://localhost:3000", "Development server")
     .build();
 
   const document = SwaggerModule.createDocument(app, config);
