@@ -11,6 +11,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     private prisma: PrismaService,
     private configService: ConfigService
   ) {
+    // this tells passport how to get jwt from the incoming request
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       ignoreExpiration: false,
