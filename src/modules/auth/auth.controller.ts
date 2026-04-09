@@ -3,9 +3,9 @@ import { AuthService } from "./auth.service";
 import { RegisterDto } from "./dtos/register.dto";
 import { AuthResponseDto } from "./dtos/auth-response.dto";
 import { ApiBearerAuth, ApiOperation, ApiResponse } from "@nestjs/swagger";
-import { RefreshTokenGuard } from "./guards/refresh-token.guards";
+import { RefreshTokenGuard } from "../../common/guards/refresh-token.guards";
 import { GetUser } from "src/common/decorators/get-user";
-import { JwtAuthGuard } from "./guards/jwt-auth-guard";
+import { JwtAuthGuard } from "../../common/guards/jwt-auth-guard";
 import { LoginDto } from "./dtos/login.dto";
 
 @Controller("auth")
