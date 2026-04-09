@@ -117,7 +117,7 @@ export class UsersController {
 
   // Delete user by ID (for admin purposes)
   @Delete(":id")
-  @Roles(Role.ADMIN)
+  @Roles(Role.USER)
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: "Delete user by ID" })
   @ApiResponse({
