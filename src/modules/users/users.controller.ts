@@ -1,12 +1,26 @@
-import { Controller, Get, UseGuards, Req } from "@nestjs/common";
+import {
+  Controller,
+  Get,
+  UseGuards,
+  Req,
+  Param,
+  Patch,
+  Delete,
+  HttpCode,
+  HttpStatus,
+  Body
+} from "@nestjs/common";
 import { UsersService } from "./users.service";
-import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from "@nestjs/swagger";
+import { ApiBearerAuth, ApiBody, ApiOperation, ApiResponse, ApiTags } from "@nestjs/swagger";
 import { JwtAuthGuard } from "../../common/guards/jwt-auth-guard";
 import { RolesGuard } from "src/common/guards/roles.guards";
 import { UserResponseDto } from "./dto/user-response-dto";
 import type { RequestWithUser } from "src/common/interfaces/request-user-interface";
 import { Roles } from "src/common/decorators/roles.decorator";
 import { Role } from "@prisma/client";
+import { UpdateUserDto } from "./dto/update-user.dto";
+import { GetUser } from "src/common/decorators/get-user";
+import { ChangePasswordDto } from "./dto/change-password.dto";
 
 @ApiTags("users")
 @ApiBearerAuth("JWT-auth")
@@ -40,5 +54,78 @@ export class UsersController {
   @ApiResponse({ status: 401, description: "Unauthorized" })
   async findAll(): Promise<UserResponseDto[]> {
     return await this.usersService.findAll();
+  }
+
+  // Get user by ID (for admin purposes)
+  @Get(":id")
+  @Roles(Role.ADMIN)
+  @ApiOperation({ summary: "Get user by ID" })
+  @ApiResponse({
+    status: 200,
+    description: "The user with the specified ID",
+    type: UserResponseDto
+  })
+  @ApiResponse({ status: 401, description: "Unauthorized" })
+  @ApiResponse({ status: 404, description: "User not found" })
+  async findOne(@Param("id") id: string): Promise<UserResponseDto> {
+    return await this.usersService.findOne(id);
+  }
+
+  // Update current user profile
+  @Patch("me")
+  @ApiOperation({ summary: "Update current user profile" })
+  @ApiBody({ type: UpdateUserDto })
+  @ApiResponse({
+    status: 200,
+    description: "The updated user profile",
+    type: UserResponseDto
+  })
+  @ApiResponse({ status: 401, description: "Unauthorized" })
+  @ApiResponse({ status: 409, description: "Email already in use" })
+  async updateProfile(
+    @GetUser("id") userId: string,
+    @Body() updateUserDto: UpdateUserDto
+  ): Promise<UserResponseDto> {
+    return await this.usersService.update(userId, updateUserDto);
+  }
+
+  // Change curren tuser password
+  @Patch("me/password")
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "Change current user password" })
+  @ApiResponse({ status: 200, description: "Password changed successfully" })
+  @ApiResponse({ status: 401, description: "Unauthorized" })
+  async changePassword(
+    @GetUser("id") userId: string,
+    @Body() changePasswordDto: ChangePasswordDto
+  ): Promise<{ message: string }> {
+    return await this.usersService.changePassword(userId, changePasswordDto);
+  }
+
+  // Delete current user account
+  @Delete("me")
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "Delete current user account" })
+  @ApiResponse({
+    status: 200,
+    description: "User account deleted successfully"
+  })
+  @ApiResponse({ status: 401, description: "Unauthorized" })
+  async deleteAccount(@GetUser("id") userId: string): Promise<{ message: string }> {
+    return await this.usersService.remove(userId);
+  }
+
+  // Delete user by ID (for admin purposes)
+  @Delete(":id")
+  @Roles(Role.ADMIN)
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "Delete user by ID" })
+  @ApiResponse({
+    status: 200,
+    description: "User with the specified ID deleted successfully"
+  })
+  @ApiResponse({ status: 401, description: "Unauthorized" })
+  async deleteUser(@Param("id") id: string): Promise<{ message: string }> {
+    return await this.usersService.remove(id);
   }
 }
