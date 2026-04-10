@@ -4,8 +4,11 @@ import { AppService } from "./app.service";
 import { AppController } from "./app.controller";
 import { AuthModule } from "./modules/auth/auth.module";
 import { ConfigModule } from "@nestjs/config";
-import { UsersModule } from './modules/users/users.module';
-import { CategoryModule } from './modules/category/category.module';
+import { UsersModule } from "./modules/users/users.module";
+import { CategoryModule } from "./modules/category/category.module";
+import { ProductsModule } from "./modules/products/products.module";
+import { OrdersModule } from "./modules/orders/orders.module";
+import { ThrottlerModule } from "@nestjs/throttler";
 
 @Module({
   imports: [
@@ -13,10 +16,20 @@ import { CategoryModule } from './modules/category/category.module';
       isGlobal: true,
       envFilePath: ".env"
     }),
+
+    ThrottlerModule.forRoot([
+      {
+        ttl: 60, // seconds
+        limit: 10 // 10 requests per 60 seconds
+      }
+    ]),
+
     PrismaModule,
     AuthModule,
     UsersModule,
-    CategoryModule
+    CategoryModule,
+    ProductsModule,
+    OrdersModule
   ],
   providers: [AppService],
   exports: [AppService],
