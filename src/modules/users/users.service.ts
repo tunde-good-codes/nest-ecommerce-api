@@ -4,11 +4,16 @@ import { PrismaService } from "src/prisma/prisma.service";
 import * as bcrypt from "bcrypt";
 import { UpdateUserDto } from "./dto/update-user.dto";
 import { ChangePasswordDto } from "./dto/change-password.dto";
-
+import { InjectRedis } from "@nestjs-modules/ioredis";
+import Redis from "ioredis";
+import { RedisUsers } from "src/common/redis/user";
 @Injectable()
 export class UsersService {
   private readonly SALT_ROUNDS = 10;
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    @InjectRedis() private readonly redis: Redis
+  ) {}
   async findOne(userId: string): Promise<UserResponseDto> {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
@@ -27,11 +32,19 @@ export class UsersService {
     if (!user) {
       throw new NotFoundException("User not found");
     }
+
     return user;
   }
-
+// redis added
   async findAll(): Promise<UserResponseDto[]> {
-    return await this.prisma.user.findMany({
+    const cached = await this.redis.get(RedisUsers.GET_ALL_USERS);
+
+    if (cached) {
+      console.log("serving from redis");
+
+      return JSON.parse(cached);
+    }
+    const users = await this.prisma.user.findMany({
       select: {
         id: true,
         email: true,
@@ -44,6 +57,9 @@ export class UsersService {
       },
       orderBy: { createdAt: "desc" }
     });
+
+    await this.redis.set(RedisUsers.GET_ALL_USERS, JSON.stringify(users), "EX", 60);
+    return users;
   }
 
   async update(userId: string, updateUserDto: UpdateUserDto): Promise<UserResponseDto> {
@@ -79,6 +95,7 @@ export class UsersService {
         password: false
       }
     });
+    await this.redis.del(RedisUsers.GET_ALL_USERS);
 
     return updatedUser;
   }

@@ -12,6 +12,9 @@ import { ConfigService } from "@nestjs/config";
 import { LoginDto } from "./dtos/login.dto";
 import { RegisterDto } from "./dtos/register.dto";
 import { AuthResponseDto } from "./dtos/auth-response.dto";
+import { RedisUsers } from "src/common/redis/user";
+import { InjectRedis } from "@nestjs-modules/ioredis";
+import Redis from "ioredis";
 
 @Injectable()
 export class AuthService {
@@ -19,7 +22,8 @@ export class AuthService {
   constructor(
     private prisma: PrismaService,
     private jwtService: JwtService,
-    private configService: ConfigService
+    private configService: ConfigService,
+    @InjectRedis() private readonly redis: Redis
   ) {}
 
   //   Register a new user
@@ -56,6 +60,7 @@ export class AuthService {
       const tokens = await this.generateTokens(user.id, user.email);
 
       await this.updateRefreshToken(user.id, tokens.refreshToken);
+      await this.redis.del(RedisUsers.GET_ALL_USERS);
 
       return {
         ...tokens,
