@@ -35,7 +35,7 @@ export class UsersService {
 
     return user;
   }
-// redis added
+
   async findAll(): Promise<UserResponseDto[]> {
     const cached = await this.redis.get(RedisUsers.GET_ALL_USERS);
 

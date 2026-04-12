@@ -13,6 +13,7 @@ import { PaymentsModule } from "./modules/payments/payments.module";
 import { CartModule } from "./modules/cart/cart.module";
 import { BullModule } from "@nestjs/bull";
 import { RedisModule } from "@nestjs-modules/ioredis";
+import { EmailModule } from "./modules/email/email.module";
 
 @Module({
   imports: [
@@ -57,7 +58,8 @@ import { RedisModule } from "@nestjs-modules/ioredis";
     ProductsModule,
     OrdersModule,
     PaymentsModule,
-    CartModule
+    CartModule,
+    EmailModule
   ],
   providers: [AppService],
   exports: [AppService],
